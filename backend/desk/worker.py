@@ -18,23 +18,12 @@ def setup_django() -> None:
 
 
 def claim_one_pending():
-    from django.db import transaction
+    from desk.services import apply_verdict, claim_next_pending_submission
 
-    from desk.models import OffsetSubmission
-    from desk.services import apply_verdict
-
-    with transaction.atomic():
-        submission = (
-            OffsetSubmission.objects.select_for_update(skip_locked=True)
-            .filter(status=OffsetSubmission.Status.PENDING)
-            .order_by("created_at", "id")
-            .first()
-        )
-        if submission is None:
-            return False
-
-        submission.status = OffsetSubmission.Status.PROCESSING
-        submission.save(update_fields=["status"])
+    # 认领与跳过暂停刀在同一服务函数内完成，跳过逻辑与库内暂停态同源。
+    submission = claim_next_pending_submission()
+    if submission is None:
+        return False
 
     apply_verdict(submission)
     return True

@@ -60,3 +60,25 @@ export function createSubmission(tool_code, offset_um) {
     body: JSON.stringify({ tool_code, offset_um: Number(offset_um) }),
   });
 }
+
+export function fetchToolPauses() {
+  return request("/tool-pauses");
+}
+
+export function pauseTool(tool_code) {
+  return request("/tool-pauses/pause", {
+    method: "POST",
+    body: JSON.stringify({ tool_code }),
+  });
+}
+
+export function resumeTool(tool_code) {
+  return request("/tool-pauses/resume", {
+    method: "POST",
+    body: JSON.stringify({ tool_code }),
+  });
+}
+
+export function fetchPauseLogs() {
+  return request("/tool-pause-logs");
+}
