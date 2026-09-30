@@ -57,6 +57,15 @@ DATABASES = {
     }
 }
 
+# 仅测试/本地无 Postgres 时使用：DJANGO_SQLITE=1
+if os.environ.get("DJANGO_SQLITE") == "1":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.environ.get("SQLITE_PATH", ":memory:"),
+        }
+    }
+
 AUTH_PASSWORD_VALIDATORS = []
 
 LANGUAGE_CODE = "zh-hans"

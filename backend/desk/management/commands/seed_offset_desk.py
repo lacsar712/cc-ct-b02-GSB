@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from desk.auth_utils import hash_password
-from desk.models import OffsetSubmission, User
+from desk.models import OffsetSubmission, ToolPause, User
 
 
 class Command(BaseCommand):
@@ -32,8 +32,12 @@ class Command(BaseCommand):
             ("T09", 20, OffsetSubmission.Verdict.FAIL),
         ]
         for tool_code, offset_um, verdict in seeds:
-            OffsetSubmission.objects.update_or_create(
+            tool, _ = ToolPause.objects.update_or_create(
                 tool_code=tool_code,
+                defaults={"is_paused": False},
+            )
+            OffsetSubmission.objects.update_or_create(
+                tool=tool,
                 offset_um=offset_um,
                 defaults={
                     "status": OffsetSubmission.Status.DONE,

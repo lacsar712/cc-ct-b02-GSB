@@ -60,3 +60,23 @@ export function createSubmission(tool_code, offset_um) {
     body: JSON.stringify({ tool_code, offset_um: Number(offset_um) }),
   });
 }
+
+export function fetchTools() {
+  return request("/tools");
+}
+
+export function pauseTool(tool_code) {
+  return request(`/tools/${encodeURIComponent(tool_code)}/pause`, {
+    method: "POST",
+  });
+}
+
+export function resumeTool(tool_code) {
+  return request(`/tools/${encodeURIComponent(tool_code)}/resume`, {
+    method: "POST",
+  });
+}
+
+export function fetchToolEvents() {
+  return request("/tool-events");
+}

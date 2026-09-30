@@ -1,4 +1,8 @@
-"""Background worker: claim pending rows with SKIP LOCKED and apply verdict."""
+"""Background worker: claim pending rows with SKIP LOCKED and apply verdict.
+
+暂停刀具的候审单在认领查询中直接跳过（与暂停台、库内 ToolPause 同源），
+其余刀具按提交顺序照常认领；被跳过的刀恢复后立即重新进入认领队列。
+"""
 
 import os
 import sys
@@ -18,23 +22,11 @@ def setup_django() -> None:
 
 
 def claim_one_pending():
-    from django.db import transaction
+    from desk.services import apply_verdict, claim_next_pending
 
-    from desk.models import OffsetSubmission
-    from desk.services import apply_verdict
-
-    with transaction.atomic():
-        submission = (
-            OffsetSubmission.objects.select_for_update(skip_locked=True)
-            .filter(status=OffsetSubmission.Status.PENDING)
-            .order_by("created_at", "id")
-            .first()
-        )
-        if submission is None:
-            return False
-
-        submission.status = OffsetSubmission.Status.PROCESSING
-        submission.save(update_fields=["status"])
+    submission = claim_next_pending()
+    if submission is None:
+        return False
 
     apply_verdict(submission)
     return True
